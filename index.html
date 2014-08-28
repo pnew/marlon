@@ -1,0 +1,345 @@
+<html>
+<head>
+<meta charset="utf-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="css/jquery.mobile-1.4.3.min.css" />
+<link rel="stylesheet" href="css/rauol.css" />
+
+
+<!-- secret sauce to get phonegapBuild to include cordova -->
+<!-- http://stackoverflow.com/questions/20924734/cant-use-navigator-camera-getpicture-on-ios-phonegap-adobe-build -->
+<script src="cordova.js"></script>
+ <script type="text/javascript" charset="utf-8">
+
+    // wait for device API libraries to load
+    //
+    document.addEventListener("deviceready", onDeviceReady, false);
+
+    // device APIs are available
+    //
+    function onDeviceReady() {
+        navigator.geolocation.getCurrentPosition(onSuccess, onError);
+    }
+
+    // Display `Position` properties from the geolocation
+    //
+    function onSuccess(position) {
+        var div = document.getElementById('myDiv');
+
+        div.innerHTML = 'Latitude: '             + position.coords.latitude         + '<br/>' +
+                        'Longitude: '            + position.coords.longitude        + '<br/>' +
+    }
+
+    // Show an alert if there is a problem getting the geolocation
+    //
+    function onError() {
+        alert('onError!');
+    }
+
+    </script>
+<!-- end secret sauce -->
+
+<script src="js/vendor/jquery-1.10.2.min.js"></script>
+
+<script src="https://maps.googleapis.com/maps/api/js?v=3&sensor=true" >
+</script>
+
+
+<!--
+  enable this script tag to test your key in a browser  (replacing the string "INSERT-YOUR-KEY-HERE")
+
+<script src="https://maps.googleapis.com/maps/api/js?v=3&key=INSERT-YOUR-KEY-HERE&sensor=true" >
+</script>
+
+
+  the browser will report that google is unhappy if a bad key is presented
+
+// Google has disabled use of the Maps API for this application. The provided key is not a valid Google 
+// API Key, or it is not authorized for the Google Maps Javascript API v3 on this site. If you are the 
+// owner of this application, you can learn about obtaining a valid key 
+// here: https://developers.google.com/maps/documentation/javascript/tutorial#api_key
+</script>
+-->
+
+<script>
+
+$(document).bind("mobileinit",  function() {
+
+  $.support.cors = true;
+  $.mobile.allowCrossDomainPages = true;
+  $.mobile.defaultPageTransition = "fade";
+
+  });
+
+var map = new Object;
+
+</script>
+
+<!-- the last script to load -->
+<script src="js/vendor/jquery.mobile-1.4.3.min.js"></script>
+
+
+</head>
+
+<body style="text-align:center">
+
+
+<div data-role="page" id="page2" data-fullscreen="true" data-theme="c">
+
+	<div data-role="header" data-fullscreen="true" id="page2Header" class="headerClass">
+		
+		<div data-role="controlgroup" data-type="horizontal">
+			<!--
+
+        -->
+
+  		</div>
+	</div>
+	
+	<div id='page2Content' class='pageContent' data-role="content" style="padding:1px">
+
+        	
+      <div id="mapCanvas" class='mapCanvas' ></div>
+
+
+  </div> <!-- end of content -->
+
+  <div id='page2Footer' data-role="footer" class="footerClass" data-position="fixed" data-tap-toggle="false"> 
+  <!-- <div id='page2Footer' data-role="footer" class="ui-bar headerClass" data-position="fixed"> -->
+
+    <div data-role="controlgroup" data-type="horizontal" >
+
+      <button data-inline="true" id='infoButton' data-icon="info" >Search</button>
+
+        <!-- <div id="infoButton" ></div>  -->
+
+      </div> <!-- end control group --> 
+
+    </div> <!-- end footer -->
+
+  <script>
+
+    $("#infoButton").click(function() {
+
+      $.mobile.changePage($("#info"), { transition: 'fade' });
+
+    }); // end click
+
+  </script>
+
+
+</div> <!-- end of page2 -->
+
+
+
+<!-      ----------------------------------------------------------------------------- -->
+<!-      ----------------------------------------------------------------------------- -->
+<!-      ----------------------------------------------------------------------------- -->
+
+
+<div data-role="page" id="info" data-cache="false" data-theme="c">
+
+  <div data-role="header" id="infoHeader" data-theme="c" class="headerClass">
+
+    <div data-role="controlgroup" data-type="horizontal">
+
+    </div> <!-- end control group --> 
+
+  </div>
+  
+  <div data-role="content" id="infoContent" class='pageContent'>
+
+    <div class='infoContentWrapper'  >
+
+      <div id="smallPrint" style="width:60%;text-align:justify;left:20%" >
+
+    <p> 
+      Mystery solved! (at least for iOS in version 1 of this cookbook)
+    </p>
+
+    <p> 
+      Pure html5 apps using a private google maps v3 API key via phonegapBuild.
+    </p>
+
+
+    </div  >
+
+
+  </div> <!-- end content wrapper -->
+
+
+  </div> <!-- end page content -->
+
+
+  <div data-role="footer" id="infoFooter" class="footerClass" data-theme="c" data-position="fixed" data-tap-toggle="false"> 
+
+    <div data-role="controlgroup" data-type="horizontal">
+
+      <button data-inline="true" id="infoBackBtn" data-icon="back" >tap me</button> 
+	  <div id="myDiv"></div>
+
+    </div> <!-- end control group --> 
+
+  </div> <!-- end footer --> 
+
+  <script>
+
+    $("#infoBackBtn").click(function() {
+
+      $.mobile.changePage($("#page2"), { transition: 'fade' });
+
+
+    }); // end backbtn click
+
+
+  </script>
+
+</div> <!-- end page pageInfo -->
+
+
+
+<!-- end of pages -->
+
+
+<!-      ----------------------------------------------------------------------------- -->
+<!-      ----------------------------------------------------------------------------- -->
+<!-      ----------------------------------------------------------------------------- -->
+
+<script>
+
+  $(document).on('pageshow', '#page2', function() {
+ 
+    $(window).resize(); // ensure tiles are loaded
+      
+  } );
+
+  google.maps.event.addDomListener(window, 'load', initialize);
+
+  function initialize() {
+  
+	    function getLocation() {
+        if(pgr == true) {
+          var locOptions = {
+            timeout : 5000,
+            enableHighAccuracy : true
+          };
+          //get the current location
+          navigator.geolocation.getCurrentPosition(onLocationSuccess, onLocationError, locOptions);
+          //Clear the current location while we wait for a reading
+          lc.innerHTML = "Reading location...";
+
+        } else {
+          alert("Please wait,\nPhoneGap is not ready.");
+        }
+      }
+
+      function onLocationSuccess(loc) {
+        //We received something from the API, so first get the
+        // timestamp in a date object so we can work with it
+        var d = new Date(loc.timestamp);
+        //Then replace the page's content with the current
+        // location retrieved from the API
+		var latitude = loc.coords.latitude;
+		var longitude = loc.coords.longitude;
+		
+        lc.innerHTML = '<b>Latitude</b>: ' + latitude + '<br /><b>Longitude</b>: ' + longitude;
+      }
+
+      function onLocationError(e) {
+        alert("Geolocation error: #" + e.code + "\n" + e.message);
+      }
+
+    var defaultPosition = {
+    latitude: 37.429793,
+    longitude: -122.169546,
+    zoom: 13 
+    }
+
+    var myLatlng = new google.maps.LatLng(latitude, longitude);
+	
+	
+    var mapOptions = {
+    zoom: 4,
+    center: myLatlng
+	}
+	
+	
+    map = new google.maps.Map(document.getElementById('mapCanvas'), mapOptions);
+	
+	var marker = new google.maps.Marker({
+      position: myLatlng,
+      map: map,
+      title: 'Hello World!'
+	});
+
+    var view = getAvailableDimensions();
+
+    $('#mapCanvas').css({height: ((view.availableContentHeight)-4) + 'px' });
+
+  }
+
+
+
+  function getAvailableDimensions() {
+
+    var imagePixels = 300;
+
+  // http://www.gajotres.net/using-google-maps-javascript-api-v3-with-jquery-mobile/
+
+    var header = $('.headerClass').height();
+    //console.log("header: " + header);
+
+    var footer = $('.footerClass').height();
+    //console.log("footer (should be 1% larger than header): " + footer);
+
+    var viewport_height = $(window).height(); 
+    //console.log("viewport_height: " + viewport_height);
+ 
+    var content_height = viewport_height - header - footer ;
+    //console.log("content_height: " + content_height);
+
+    // if (!isMobile) {
+
+      var fromTop = 0;
+
+      // adjust the vertical position of .swipe-wrap inside of .swipe
+      if (imagePixels <= content_height) {
+
+        var remainderPct = ((content_height - imagePixels)/content_height) * 100;
+        // console.log("remainderPct: " + remainderPct);
+
+        var mysteryAdjustment = 5;
+        fromTop = (remainderPct / 2) - mysteryAdjustment;
+
+
+      }
+      else {
+
+        fromTop = 0;
+      }
+
+    return {
+      viewportHeight: viewport_height,
+      availableContentHeight: content_height,
+      imageFromTop: fromTop
+    }
+	
+	
+
+}
+
+  
+
+
+</script>
+
+
+
+</body>
+
+</html>
+
+
+
+
